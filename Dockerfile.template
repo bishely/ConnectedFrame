@@ -35,8 +35,8 @@ COPY . ./
 # Install Adafruit-IO and Crontab via pip
 RUN pip install adafruit-io python-crontab
 
-# Install cronjobs to turn display on and off
-RUN crontab jobs.txt
+# Install cronjobs to turn display on and off EDIT: Removed and shifted to Python
+# RUN crontab jobs.txt
 
 # Enable systemd init system in container
 ENV INITSYSTEM on

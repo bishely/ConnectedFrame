@@ -2,19 +2,23 @@
 
 from Tkinter import *
 from os import putenv, getenv, system
-from PIL import Image, ImageTk 
+from PIL import Image, ImageTk
 from glob import glob
 from Adafruit_IO import MQTTClient
 from crontab import CronTab
 
-ADAFRUIT_IO_KEY = getenv("ADAFRUIT_KEY")
-ADAFRUIT_IO_USERNAME = getenv("ADAFRUIT_USER")
+
 dropbox_link = getenv("DROPBOX_LINK")
 download_interval = int(getenv("DOWNLOAD_INTERVAL_HOURS")) * 60 * 60 * 1000
 carousel_interval = int(getenv("CAROUSEL_INTERVAL_SECONDS")) * 1000
 frame_owner = getenv("FRAME_OWNER")
-
 ifttt_key = getenv("IFTTT_KEY")
+
+ADAFRUIT_IO_KEY = getenv("ADAFRUIT_KEY")
+ADAFRUIT_IO_USERNAME = getenv("ADAFRUIT_USER")
+ADAFRUIT_IO_FEED = getenv("ADAFRUIT_FEED")
+feed_notification = False
+
 hour_on = getenv("HOUR_ON")
 hour_off = getenv("HOUR_OFF")
 update_cron = getenv("UPDATE_CRON")
@@ -27,18 +31,18 @@ image_index = 0
 image_list = []
 initial_init = True
 
-if (update_cron):
-	cron.remove_all('echo')
-	cron_job = cron.new(command='echo 1 > /sys/class/backlight/rpi_backlight/bl_power') # Turn off backlight
-	cron_job.hour.on(hour_off)
-	cron_job.enable()
-	cron.write()
-	cron_job = cron.new(command='echo 0 > /sys/class/backlight/rpi_backlight/bl_power') # Turn on power
-	cron_job.hour.on(hour_on)
-	cron_job.enable()
-	cron_write()
-	update_cron = False
-	
+def crontweak():
+	if (update_cron):
+		cron.remove_all()
+		cron_job = cron.new(command='echo 1 > /sys/class/backlight/rpi_backlight/bl_power') # Turn off backlight
+		cron_job.hour.on(hour_off)
+		cron_job.enable()
+		cron.write()
+		cron_job = cron.new(command='echo 0 > /sys/class/backlight/rpi_backlight/bl_power') # Turn on power
+		cron_job.hour.on(hour_on)
+		cron_job.enable()
+		cron_write()
+		update_cron = False
 
 # Define callback functions which will be called when certain events happen.
 def connected(client):
@@ -48,7 +52,7 @@ def connected(client):
     # calls against it easily.
     print('Connected to Adafruit IO!  Listening for DemoFeed changes...')
     # Subscribe to changes on a feed named DemoFeed.
-    client.subscribe('DemoFeed')
+    client.subscribe(ADAFRUIT_IO_FEED)
 
 def disconnected(client):
     # Disconnected function will be called when the client disconnects.
@@ -59,16 +63,8 @@ def message(client, feed_id, payload):
     # Message function will be called when a subscribed feed has a new value.
     # The feed_id parameter identifies the feed, and the payload parameter has
     # the new value.
-    print('Feed {0} received new value: {1}'.format(feed_id, payload))
-
-
-# Create an MQTT client instance.
-client = MQTTClient(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
-
-# Setup the callback functions defined above.
-client.on_connect    = connected
-client.on_disconnect = disconnected
-client.on_message    = message
+    #print('Feed {0} received new value: {1}'.format(feed_id, payload))
+    feed_notification = True
 
 def download_images(url):
 	archive = base_path + "temp.zip"
@@ -108,7 +104,7 @@ def previous_image():
 	image_path = image_list[image_index]
 
 	update_image(image_path)
-	
+
 def next_image():
 	global image_index
 	image_index = image_index + 1
@@ -129,7 +125,7 @@ def play_pause():
 		img = ImageTk.PhotoImage(Image.open("/usr/src/app/icons/pause.png"))
 	else:
 		img = ImageTk.PhotoImage(Image.open("/usr/src/app/icons/play.png"))
-	
+
 	play_button.configure(image=img)
 	play_button.image = img
 
@@ -152,7 +148,7 @@ def initialize():
 	global image_list, carrousel_status, initial_init
 	current_carrousel_status = carrousel_status
 	carrousel_status = False
-
+	crontweak()
 	download_images(dropbox_link)
 	resize_images()
 	image_list = list_images()
@@ -163,6 +159,11 @@ def initialize():
 		initial_init = False
 		root.after(1000, initialize)
 	else:
+		if(feed_notification):
+			download_interval = 10
+			feed_notification = False
+		else:
+			download_interval = 18000000
 		root.after(download_interval, initialize) # Change this to only run initialise if MQTT message arrives
 
 def send_event():
@@ -174,6 +175,14 @@ def send_event():
 
 	system(command)
 
+# Create an MQTT client instance.
+client = MQTTClient(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
+
+# Setup the callback functions defined above.
+client.on_connect    = connected
+client.on_disconnect = disconnected
+client.on_message    = message
+
 # Connect to the Adafruit IO server.
 client.connect()
 
@@ -184,7 +193,7 @@ client.connect()
 # The first option is to run a thread in the background so you can continue
 # doing things in your program.
 client.loop_background()
-	
+
 root = Tk()
 root.title('Connected Frame')
 root.geometry('{}x{}'.format(800, 480))
