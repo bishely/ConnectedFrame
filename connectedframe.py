@@ -5,6 +5,7 @@ from os import putenv, getenv, system
 from PIL import Image, ImageTk 
 from glob import glob
 from Adafruit_IO import MQTTClient
+from crontab import CronTab
 
 ADAFRUIT_IO_KEY = getenv("ADAFRUIT_KEY")
 ADAFRUIT_IO_USERNAME = getenv("ADAFRUIT_USER")
@@ -12,13 +13,32 @@ dropbox_link = getenv("DROPBOX_LINK")
 download_interval = int(getenv("DOWNLOAD_INTERVAL_HOURS")) * 60 * 60 * 1000
 carousel_interval = int(getenv("CAROUSEL_INTERVAL_SECONDS")) * 1000
 frame_owner = getenv("FRAME_OWNER")
+
 ifttt_key = getenv("IFTTT_KEY")
+hour_on = getenv("HOUR_ON")
+hour_off = getenv("HOUR_OFF")
+update_cron = getenv("UPDATE_CRON")
+
+system_cron = CronTab()
 
 base_path = "/usr/src/app/images/"
 carrousel_status = True
 image_index = 0
 image_list = []
 initial_init = True
+
+if (update_cron):
+	cron.remove_all('echo')
+	cron_job = cron.new(command='echo 1 > /sys/class/backlight/rpi_backlight/bl_power') # Turn off backlight
+	cron_job.hour.on(hour_off)
+	cron_job.enable()
+	cron.write()
+	cron_job = cron.new(command='echo 0 > /sys/class/backlight/rpi_backlight/bl_power') # Turn on power
+	cron_job.hour.on(hour_on)
+	cron_job.enable()
+	cron_write()
+	update_cron = False
+	
 
 # Define callback functions which will be called when certain events happen.
 def connected(client):
