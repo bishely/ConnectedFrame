@@ -10,6 +10,13 @@ RUN apt-get update && apt-get install -y \
   python-imaging-tk \
   unzip \
   cron && rm -rf /var/lib/apt/lists/*
+  
+# Install Pexif
+RUN git clone https://github.com/bennoleslie/pexif.git
+RUN cd pexif
+RUN python setup.py install
+RUN cd ..
+RUN rm -rf pexif
 
 # Set Xorg and FLUXBOX preferences
 RUN mkdir ~/.fluxbox
