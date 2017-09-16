@@ -2,11 +2,9 @@
 
 from Tkinter import *
 from os import putenv, getenv, system
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk 
+import pexif
 from glob import glob
-from Adafruit_IO import MQTTClient
-from crontab import CronTab
-
 
 dropbox_link = getenv("DROPBOX_LINK")
 download_interval = int(getenv("DOWNLOAD_INTERVAL_HOURS")) * 60 * 60 * 1000
@@ -14,57 +12,11 @@ carousel_interval = int(getenv("CAROUSEL_INTERVAL_SECONDS")) * 1000
 frame_owner = getenv("FRAME_OWNER")
 ifttt_key = getenv("IFTTT_KEY")
 
-ADAFRUIT_IO_KEY = getenv("ADAFRUIT_KEY")
-ADAFRUIT_IO_USERNAME = getenv("ADAFRUIT_USER")
-ADAFRUIT_IO_FEED = getenv("ADAFRUIT_FEED")
-feed_notification = False
-
-hour_on = getenv("HOUR_ON")
-hour_off = getenv("HOUR_OFF")
-update_cron = getenv("UPDATE_CRON")
-
-system_cron = CronTab()
-
 base_path = "/usr/src/app/images/"
 carrousel_status = True
 image_index = 0
 image_list = []
 initial_init = True
-
-def crontweak():
-	if (update_cron):
-		cron.remove_all()
-		cron_job = cron.new(command='echo 1 > /sys/class/backlight/rpi_backlight/bl_power') # Turn off backlight
-		cron_job.hour.on(hour_off)
-		cron_job.enable()
-		cron.write()
-		cron_job = cron.new(command='echo 0 > /sys/class/backlight/rpi_backlight/bl_power') # Turn on power
-		cron_job.hour.on(hour_on)
-		cron_job.enable()
-		cron_write()
-		update_cron = False
-
-# Define callback functions which will be called when certain events happen.
-def connected(client):
-    # Connected function will be called when the client is connected to Adafruit IO.
-    # This is a good place to subscribe to feed changes.  The client parameter
-    # passed to this function is the Adafruit IO MQTT client so you can make
-    # calls against it easily.
-    print('Connected to Adafruit IO!  Listening for DemoFeed changes...')
-    # Subscribe to changes on a feed named DemoFeed.
-    client.subscribe(ADAFRUIT_IO_FEED)
-
-def disconnected(client):
-    # Disconnected function will be called when the client disconnects.
-    print('Disconnected from Adafruit IO!')
-    sys.exit(1)
-
-def message(client, feed_id, payload):
-    # Message function will be called when a subscribed feed has a new value.
-    # The feed_id parameter identifies the feed, and the payload parameter has
-    # the new value.
-    #print('Feed {0} received new value: {1}'.format(feed_id, payload))
-    feed_notification = True
 
 def download_images(url):
 	archive = base_path + "temp.zip"
@@ -77,14 +29,52 @@ def download_images(url):
 	system(download)
 	system(extract)
 
-def resize_images():
+def rotate_images():
 	images = list_images()
+	for file in images:
+		img = pexif.JpegFile.fromFile(file)
 
+		try:
+			#Get the orientation if it exists
+			orientation = img.exif.primary.Orientation[0]
+			img.exif.primary.Orientation = [1]
+			img.writeFile(file)
+
+			#now rotate the image using the Python Image Library (PIL)
+			img = Image.open(file)
+			if orientation is 6: img = img.rotate(-90)
+			elif orientation is 8: img = img.rotate(90)
+			elif orientation is 3: img = img.rotate(180)
+			elif orientation is 2: img = img.transpose(Image.FLIP_LEFT_RIGHT)
+			elif orientation is 5: img = img.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
+			elif orientation is 7: img = img.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
+			elif orientation is 4: img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
+
+			#save the result
+			img.save(file)
+		except: pass
+
+def resize_images():
+	baseheight = 480
+	images = list_images()
 	for file in images:
 		img = Image.open(file)
-		img = img.resize((640, 480), Image.ANTIALIAS)
+		hpercent = float(float(img.size[0])/float(img.size[1]))
+		neww = int(baseheight*float(hpercent))
+		img = img.resize((neww,baseheight), Image.ANTIALIAS)
 		img.save(file, "JPEG")
 
+def add_borders():
+	images = list_images()
+	for file in images:
+		old_im = Image.open(file)
+		old_size = old_im.size
+		new_size = (640, 480)
+		new_im = Image.new("RGB", new_size)   ## luckily, this is already black!
+		new_im.paste(old_im, ((new_size[0]-old_size[0])/2,
+							  (new_size[1]-old_size[1])/2))
+		new_im.save(file)
+		
 def list_images():
 	images = []
 
@@ -104,7 +94,7 @@ def previous_image():
 	image_path = image_list[image_index]
 
 	update_image(image_path)
-
+	
 def next_image():
 	global image_index
 	image_index = image_index + 1
@@ -125,7 +115,7 @@ def play_pause():
 		img = ImageTk.PhotoImage(Image.open("/usr/src/app/icons/pause.png"))
 	else:
 		img = ImageTk.PhotoImage(Image.open("/usr/src/app/icons/play.png"))
-
+	
 	play_button.configure(image=img)
 	play_button.image = img
 
@@ -148,9 +138,11 @@ def initialize():
 	global image_list, carrousel_status, initial_init
 	current_carrousel_status = carrousel_status
 	carrousel_status = False
-	crontweak()
+
 	download_images(dropbox_link)
+	rotate_images()
 	resize_images()
+	add_borders()
 	image_list = list_images()
 
 	carrousel_status = current_carrousel_status
@@ -159,12 +151,7 @@ def initialize():
 		initial_init = False
 		root.after(1000, initialize)
 	else:
-		if(feed_notification):
-			download_interval = 10
-			feed_notification = False
-		else:
-			download_interval = 18000000
-		root.after(download_interval, initialize) # Change this to only run initialise if MQTT message arrives
+		root.after(download_interval, initialize)
 
 def send_event():
 	img = ImageTk.PhotoImage(Image.open("/usr/src/app/icons/liked.png"))
@@ -174,25 +161,6 @@ def send_event():
 	command = "curl -X POST -H \"Content-Type: application/json\" -d '{\"value1\":\"" + frame_owner + "\",\"value2\":\"" + image_list[image_index] + "\"}' https://maker.ifttt.com/trigger/connectedframe_like/with/key/" + ifttt_key
 
 	system(command)
-
-# Create an MQTT client instance.
-client = MQTTClient(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
-
-# Setup the callback functions defined above.
-client.on_connect    = connected
-client.on_disconnect = disconnected
-client.on_message    = message
-
-# Connect to the Adafruit IO server.
-client.connect()
-
-# Now the program needs to use a client loop function to ensure messages are
-# sent and received.  There are a few options for driving the message loop,
-# depending on what your program needs to do.
-
-# The first option is to run a thread in the background so you can continue
-# doing things in your program.
-client.loop_background()
 
 root = Tk()
 root.title('Connected Frame')
