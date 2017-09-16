@@ -1,6 +1,6 @@
 FROM resin/%%RESIN_MACHINE_NAME%%-node:6
 
-# Install other apt deps EDIT: added pip
+# Install other apt deps
 RUN apt-get update && apt-get install -y \
   xserver-xorg-core \
   xserver-xorg-input-all \
@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
   fluxbox \
   python-imaging-tk \
   unzip \
-  python-pip \
   cron && rm -rf /var/lib/apt/lists/*
 
 # Set Xorg and FLUXBOX preferences
@@ -32,11 +31,8 @@ RUN JOBS=MAX npm install --production --unsafe-perm && npm cache clean && rm -rf
 # This will copy all files in our root to the working  directory in the container
 COPY . ./
 
-# Install Adafruit-IO and Crontab via pip
-RUN pip install adafruit-io python-crontab
-
-# Install cronjobs to turn display on and off EDIT: Removed and shifted to Python
-# RUN crontab jobs.txt
+# Install cronjobs to turn display on and off
+RUN crontab jobs.txt
 
 # Enable systemd init system in container
 ENV INITSYSTEM on
