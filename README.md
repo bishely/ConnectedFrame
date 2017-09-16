@@ -1,6 +1,6 @@
 # Revamp
 
-Yeah I'm branching my own branch, what of it?
+Yeah I'm branching my own fork, what of it?
 
 I suspect some of the things I've broken are broken because I don't fully understand why and how the original project works the way it does.
 
