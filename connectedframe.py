@@ -52,7 +52,8 @@ def rotate_images():
 
 			#save the result
 			img.save(file)
-		except: pass
+		except Exception: 
+			pass
 
 def resize_images():
 	baseheight = 480
