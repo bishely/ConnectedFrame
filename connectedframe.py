@@ -2,8 +2,9 @@
 
 from Tkinter import *
 from os import putenv, getenv, system
-from PIL import Image, ImageTk 
+from PIL import Image, ImageTk
 import pexif
+from PIL.ExifTags import TAGS
 from glob import glob
 
 dropbox_link = getenv("DROPBOX_LINK")
