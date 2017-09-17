@@ -29,12 +29,11 @@ COPY package.json package.json
 RUN JOBS=MAX npm install --production --unsafe-perm && npm cache clean && rm -rf /tmp/*
 
 # Install Pexif
-WORKDIR /usr/src/app
 RUN git clone https://github.com/bennoleslie/pexif.git
-WORKDIR /usr/src/app/pexif
-RUN python setup.py install
-WORKDIR /usr/src/app
-RUN rm -rf /usr/src/pexif
+RUN cd /usr/src/app/pexif && \
+  python setup.py install
+RUN cd /usr/src/app && \
+  rm -rf /usr/src/pexif
 
 # This will copy all files in our root to the working  directory in the container
 COPY . ./
