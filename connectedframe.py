@@ -4,7 +4,7 @@ from Tkinter import *
 from os import putenv, getenv, system
 from PIL import Image, ImageTk 
 import pexif
-from glob import glob
+import glob2
 
 dropbox_link = getenv("DROPBOX_LINK")
 download_interval = int(getenv("DOWNLOAD_INTERVAL_HOURS")) * 60 * 60 * 1000
