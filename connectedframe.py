@@ -29,7 +29,7 @@ def download_images(url):
 	system(remove)
 	system(download)
 	system(extract)
-
+	
 def rotate_images():
 	images = list_images()
 	for file in images:
