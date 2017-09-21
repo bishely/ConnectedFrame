@@ -34,28 +34,30 @@ def rotate_images():
 	images = list_images()
 	for file in images:
 		img = pexif.JpegFile.fromFile(file)
+		if img.exif.primary.Orientation is not None:
+			try:
+				#Get the orientation if it exists
+				orientation = img.exif.primary.Orientation[0]
+				img.exif.primary.Orientation = [1]
+				img.writeFile(file)
 
-		try:
-			#Get the orientation if it exists
-			orientation = img.exif.primary.Orientation[0]
-			img.exif.primary.Orientation = [1]
-			img.writeFile(file)
+				#now rotate the image using the Python Image Library (PIL)
+				img = Image.open(file)
+				if orientation is 6: img = img.rotate(-90)
+				elif orientation is 8: img = img.rotate(90)
+				elif orientation is 3: img = img.rotate(180)
+				elif orientation is 2: img = img.transpose(Image.FLIP_LEFT_RIGHT)
+				elif orientation is 5: img = img.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
+				elif orientation is 7: img = img.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
+				elif orientation is 4: img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
 
-			#now rotate the image using the Python Image Library (PIL)
-			img = Image.open(file)
-			if orientation is 6: img = img.rotate(-90)
-			elif orientation is 8: img = img.rotate(90)
-			elif orientation is 3: img = img.rotate(180)
-			elif orientation is 2: img = img.transpose(Image.FLIP_LEFT_RIGHT)
-			elif orientation is 5: img = img.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
-			elif orientation is 7: img = img.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
-			elif orientation is 4: img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
-
-			#save the result
-			img.save(file)
-		except Exception: 
+				#save the result
+				img.save(file)
+			except Exception: 
+				pass
+		else:
 			pass
-
+		
 def resize_images():
 	baseheight = 480
 	images = list_images()
@@ -142,7 +144,7 @@ def initialize():
 	carrousel_status = False
 
 	download_images(dropbox_link)
-	#rotate_images()
+	rotate_images()
 	resize_images()
 	add_borders()
 	image_list = list_images()
