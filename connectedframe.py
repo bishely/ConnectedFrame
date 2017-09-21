@@ -32,10 +32,14 @@ def download_images(url):
 	
 def rotate_images():
 	images = list_images()
+	print ("debug 34: ",images)
 	for file in images:
+		print ("debug 36: ", file)
 		img = pexif.JpegFile.fromFile(file)
+		print ("debug 38: ", img)
 		if img.exif.primary.Orientation is not None:
 			try:
+				print ("debug 40: exif prim.orient is not None for ", img)
 				#Get the orientation if it exists
 				orientation = img.exif.primary.Orientation[0]
 				img.exif.primary.Orientation = [1]
@@ -54,8 +58,10 @@ def rotate_images():
 				#save the result
 				img.save(file)
 			except Exception: 
+				print ("debug 60: exception called by line 40")
 				pass
 		else:
+			print ("debug 63: else called by line 40: exif prim.orient is None for ", img)
 			pass
 		
 def resize_images():
