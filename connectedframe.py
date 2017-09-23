@@ -37,7 +37,7 @@ def rotate_images():
 		print ("debug 36: ", file)
 		img = pexif.JpegFile.fromFile(file)
 		print ("debug 38: ", img)
-		if img.exif.primary.Orientation is not None:
+		if img.exif.primary.Orientation is not 0:
 			try:
 				print ("debug 40: exif prim.orient is not None for ", img)
 				#Get the orientation if it exists
@@ -56,12 +56,13 @@ def rotate_images():
 				elif orientation is 4: img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
 
 				#save the result
+				print ("debug 60: saving ", img, " as ", file)
 				img.save(file)
 			except Exception: 
-				print ("debug 60: exception called by line 40")
+				print ("debug 61: exception called by line 40")
 				pass
 		else:
-			print ("debug 63: else called by line 40: exif prim.orient is None for ", img)
+			print ("debug 64: else called by line 40: exif prim.orient is None for ", img)
 			pass
 		
 def resize_images():
