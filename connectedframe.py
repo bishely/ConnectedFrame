@@ -25,10 +25,15 @@ def download_images(url):
 	remove = "sudo rm -rf " + base_path + "*"
 	download = "wget -q  "+ url + " -O " + archive
 	extract = "unzip -o " + archive + " -d " + base_path
-
+	print("Removing old images...")
 	system(remove)
+	print("Images removed.")
+	print("Downloading new images from Dropbox...")
 	system(download)
+	print("Download complete.")
+	print("Extracting images...")
 	system(extract)
+	print("Extract complete.")
 	
 def rotate_images():
 	images = list_images()
@@ -159,6 +164,7 @@ def initialize():
 	carrousel_status = current_carrousel_status
 
 	if(initial_init):
+		print ("Connected Frame is now running...")
 		initial_init = False
 		root.after(1000, initialize)
 	else:
