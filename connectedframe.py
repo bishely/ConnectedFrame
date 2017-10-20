@@ -8,8 +8,8 @@ from PIL.ExifTags import TAGS
 from glob import glob
 
 dropbox_link = getenv("DROPBOX_LINK")
-download_interval = 36000000
-carousel_interval = 15000
+download_interval = int(getenv("DOWNLOAD_INTERVAL_HOURS")) * 60 * 60 * 1000
+carousel_interval = int(getenv("CAROUSEL_INTERVAL_SECONDS")) * 1000
 frame_owner = getenv("FRAME_OWNER")
 ifttt_key = getenv("IFTTT_KEY")
 
@@ -156,9 +156,9 @@ def initialize():
 	carrousel_status = False
 
 	download_images(dropbox_link)
-	#rotate_images()
-	#resize_images()
-	#add_borders()
+	rotate_images()
+	resize_images()
+	add_borders()
 	image_list = list_images()
 
 	carrousel_status = current_carrousel_status
