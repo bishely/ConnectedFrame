@@ -157,8 +157,8 @@ def initialize():
 
 	download_images(dropbox_link)
 	#rotate_images()
-	resize_images()
-	add_borders()
+	#resize_images()
+	#add_borders()
 	image_list = list_images()
 
 	carrousel_status = current_carrousel_status
