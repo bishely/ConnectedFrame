@@ -97,6 +97,10 @@ def list_images():
 	dir = base_path + "*.jpg"
 
 	images = glob(dir)
+	
+	dir = base_path + "*.gif"
+	
+	images.append = glob (dir)
 
 	return images
 
