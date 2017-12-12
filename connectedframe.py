@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 import pexif
 from PIL.ExifTags import TAGS
 from glob import glob
+from itertools import count
 
 dropbox_link = getenv("DROPBOX_LINK")
 download_interval = int(getenv("DOWNLOAD_INTERVAL_HOURS")) * 60 * 60 * 1000
@@ -18,6 +19,43 @@ carrousel_status = True
 image_index = 0
 image_list = []
 initial_init = True
+
+# Taken from https://stackoverflow.com/questions/43770847/play-an-animated-gif-in-python-with-tkinter
+class ImageLabel(tk.Label):
+    """a label that displays images, and plays them if they are gifs"""
+    def load(self, im):
+        if isinstance(im, str):
+            im = Image.open(im)
+        self.loc = 0
+        self.frames = []
+
+        try:
+            for i in count(1):
+                self.frames.append(ImageTk.PhotoImage(im.copy()))
+                im.seek(i)
+        except EOFError:
+            pass
+
+        try:
+            self.delay = im.info['duration']
+        except:
+            self.delay = 100
+
+        if len(self.frames) == 1:
+            self.config(image=self.frames[0])
+        else:
+            self.next_frame()
+
+    def unload(self):
+        self.config(image=None)
+        self.frames = None
+
+    def next_frame(self):
+        if self.frames:
+            self.loc += 1
+            self.loc %= len(self.frames)
+            self.config(image=self.frames[self.loc])
+            self.after(self.delay, self.next_frame)
 
 def download_images(url):
 	archive = base_path + "temp.zip"
@@ -78,7 +116,7 @@ def resize_images():
 		hpercent = float(float(img.size[0])/float(img.size[1]))
 		neww = int(baseheight*float(hpercent))
 		img = img.resize((neww,baseheight), Image.ANTIALIAS)
-		img.save(file, "JPEG")
+		img.save(file)
 
 def add_borders():
 	images = list_images()
@@ -93,23 +131,14 @@ def add_borders():
 		
 def list_images():
         images = []
-
         dir = base_path + "*.jpg"
-
         images = glob(dir)
-
         dir = base_path + "*.JPG"
-
         images += glob(dir)
-
         dir = base_path + "*.gif"
-
         images += glob (dir)
-
         dir = base_path + "*.GIF"
-
         images += glob (dir)
-
         return images
 
 def previous_image():
@@ -178,7 +207,7 @@ def initialize():
 	if(initial_init):
 		print ("Connected Frame is now running...")
 		initial_init = False
-		root.after(1000, initialize)
+		root.after(600000, initialize)
 	else:
 		root.after(download_interval, initialize)
 
@@ -221,8 +250,11 @@ next_button = Button(left_column, image=next_icon, borderwidth=0, background="bl
 play_button = Button(right_column, image=play_icon, borderwidth=0, background="black", foreground="white", activebackground="black", activeforeground="white", highlightthickness=0, command=play_pause)
 like_button = Button(right_column, image=like_icon, borderwidth=0, background="black", foreground="white", activebackground="black", activeforeground="white", highlightthickness=0, command=send_event)
 
-center_image = Image.open(image_list[0])
-center_photo = ImageTk.PhotoImage(center_image)
+# Using this instead to run the ImageLabel class for displaying jpg/gifs
+displayer = ImageLabel(root)
+center_image = displayer.load(image_list[0])
+#center_image = Image.open(image_list[0])
+#center_photo = ImageTk.PhotoImage(center_image)
 center_label = Label(center_column, image=center_photo)
 
 previous_button.pack(fill=BOTH, expand=1)
