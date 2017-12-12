@@ -92,17 +92,25 @@ def add_borders():
 		new_im.save(file)
 		
 def list_images():
-	images = []
+        images = []
 
-	dir = base_path + "*.jpg"
+        dir = base_path + "*.jpg"
 
-	images = glob(dir)
-	
-	#dir = base_path + "*.gif"
-	
-	#images.append = glob (dir)
+        images = glob(dir)
 
-	return images
+        dir = base_path + "*.JPG"
+
+        images += glob(dir)
+
+        dir = base_path + "*.gif"
+
+        images += glob (dir)
+
+        dir = base_path + "*.GIF"
+
+        images += glob (dir)
+
+        return images
 
 def previous_image():
 	global image_index
