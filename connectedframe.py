@@ -21,7 +21,7 @@ image_list = []
 initial_init = True
 
 # Taken from https://stackoverflow.com/questions/43770847/play-an-animated-gif-in-python-with-tkinter
-class ImageLabel(tk.Label):
+class ImageLabel(Tkinter.Label):
     """a label that displays images, and plays them if they are gifs"""
     def load(self, im):
         if isinstance(im, str):
