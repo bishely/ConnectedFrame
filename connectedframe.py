@@ -253,9 +253,9 @@ like_button = Button(right_column, image=like_icon, borderwidth=0, background="b
 
 # Using this instead to run the ImageLabel class for displaying jpg/gifs
 displayer = ImageLabel(root)
-center_image = displayer.load(image_list[0])
+#center_image = displayer.load(image_list[0])
 #center_image = Image.open(image_list[0])
-#center_photo = ImageTk.PhotoImage(center_image)
+center_photo = displayer.load(image_list[0])
 center_label = Label(center_column, image=center_photo)
 
 previous_button.pack(fill=BOTH, expand=1)
