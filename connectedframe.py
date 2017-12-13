@@ -21,43 +21,6 @@ image_index = 0
 image_list = []
 initial_init = True
 
-# Taken from https://stackoverflow.com/questions/43770847/play-an-animated-gif-in-python-with-tkinter
-class ImageLabel(Tkinter.Label):
-    """a label that displays images, and plays them if they are gifs"""
-    def load(self, im):
-        if isinstance(im, str):
-            im = Image.open(im)
-        self.loc = 0
-        self.frames = []
-
-        try:
-            for i in count(1):
-                self.frames.append(ImageTk.PhotoImage(im.copy()))
-                im.seek(i)
-        except EOFError:
-            pass
-
-        try:
-            self.delay = im.info['duration']
-        except:
-            self.delay = 1
-
-        if len(self.frames) == 1:
-            self.config(image=self.frames[0])
-        else:
-            self.next_frame()
-
-    def unload(self):
-        self.config(image=None)
-        self.frames = None
-
-    def next_frame(self):
-        if self.frames:
-            self.loc += 1
-            self.loc %= len(self.frames)
-            self.config(image=self.frames[self.loc])
-            self.after(self.delay, self.next_frame)
-
 def download_images(url):
 	archive = base_path + "temp.zip"
 
@@ -131,7 +94,6 @@ def add_borders():
 		new_im.save(file)
 		
 def list_images():
-<<<<<<< HEAD
         images = []
         dir = base_path + "*.jpg"
         images = glob(dir)
@@ -142,19 +104,6 @@ def list_images():
         dir = base_path + "*.GIF"
         images += glob (dir)
         return images
-=======
-	images = []
-
-	dir = base_path + "*.jpg"
-
-	images = glob(dir)
-	
-	#dir = base_path + "*.gif"
-	
-	#images.append = glob (dir)
-
-	return images
->>>>>>> parent of cde07c8... Tweaked list_images for gif and JPG
 
 def previous_image():
 	global image_index
@@ -213,8 +162,8 @@ def initialize():
 
 	download_images(dropbox_link)
 	#rotate_images()
-	#resize_images()
-	#add_borders()
+	resize_images()
+	add_borders()
 	image_list = list_images()
 
 	carrousel_status = current_carrousel_status
@@ -265,11 +214,8 @@ next_button = Button(left_column, image=next_icon, borderwidth=0, background="bl
 play_button = Button(right_column, image=play_icon, borderwidth=0, background="black", foreground="white", activebackground="black", activeforeground="white", highlightthickness=0, command=play_pause)
 like_button = Button(right_column, image=like_icon, borderwidth=0, background="black", foreground="white", activebackground="black", activeforeground="white", highlightthickness=0, command=send_event)
 
-# Using this instead to run the ImageLabel class for displaying jpg/gifs
-displayer = ImageLabel(root)
-#center_image = displayer.load(image_list[0])
-#center_image = Image.open(image_list[0])
-center_photo = displayer.load(image_list[0])
+center_image = Image.open(image_list[0])
+center_photo = ImageTk.PhotoImage(center_image)
 center_label = Label(center_column, image=center_photo)
 
 previous_button.pack(fill=BOTH, expand=1)
