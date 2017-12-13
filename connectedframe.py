@@ -40,7 +40,7 @@ class ImageLabel(Tkinter.Label):
         try:
             self.delay = im.info['duration']
         except:
-            self.delay = 100
+            self.delay = 1
 
         if len(self.frames) == 1:
             self.config(image=self.frames[0])
