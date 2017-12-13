@@ -131,6 +131,7 @@ def add_borders():
 		new_im.save(file)
 		
 def list_images():
+<<<<<<< HEAD
         images = []
         dir = base_path + "*.jpg"
         images = glob(dir)
@@ -141,6 +142,19 @@ def list_images():
         dir = base_path + "*.GIF"
         images += glob (dir)
         return images
+=======
+	images = []
+
+	dir = base_path + "*.jpg"
+
+	images = glob(dir)
+	
+	#dir = base_path + "*.gif"
+	
+	#images.append = glob (dir)
+
+	return images
+>>>>>>> parent of cde07c8... Tweaked list_images for gif and JPG
 
 def previous_image():
 	global image_index
