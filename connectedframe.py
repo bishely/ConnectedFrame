@@ -161,7 +161,7 @@ def initialize():
 	carrousel_status = False
 
 	download_images(dropbox_link)
-	rotate_images()
+	#rotate_images()
 	resize_images()
 	add_borders()
 	image_list = list_images()
