@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from Tkinter import *
+import Tkinter as Tkinter
 from os import putenv, getenv, system
 from PIL import Image, ImageTk
 import pexif
