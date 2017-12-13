@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from Tkinter import *
-import Tkinter as Tkinter
+#import Tkinter as Tkinter
 from os import putenv, getenv, system
 from PIL import Image, ImageTk
 import pexif
@@ -161,7 +161,7 @@ def initialize():
 	carrousel_status = False
 
 	download_images(dropbox_link)
-	#rotate_images()
+	rotate_images()
 	resize_images()
 	add_borders()
 	image_list = list_images()
